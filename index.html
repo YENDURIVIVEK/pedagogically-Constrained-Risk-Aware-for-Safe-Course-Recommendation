@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PCRA-HGNN Advisor Dashboard | Early Risk Profiling &amp; Safe Course Recommendation</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --border: #dfe5ef;
+      --text: #1b2432;
+      --muted: #5a667a;
+      --navy: #083d77;
+      --steel: #3b7ea1;
+      --amber: #d9822b;
+      --red: #c93b3b;
+      --red-bg: #fdf0f0;
+      --green: #18794e;
+      --green-bg: #edf9f2;
+      --blue-bg: #eef4fb;
+      --shadow: 0 2px 10px rgba(15, 30, 60, 0.06);
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      background: linear-gradient(135deg, #083d77 0%, #145394 60%, #246a9c 100%);
+      color: #ffffff;
+      padding: 24px 20px 20px;
+      border-bottom: 3px solid #062c56;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 18px;
+    }
+    header h1 {
+      margin: 0 0 6px;
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    header p {
+      margin: 0;
+      font-size: 0.92rem;
+      color: rgba(255, 255, 255, 0.88);
+      max-width: 920px;
+    }
+    .header-links {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.82rem;
+    }
+    .header-links a, .header-links span.pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+      text-decoration: none;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+    }
+    .header-links a:hover { background: rgba(255, 255, 255, 0.24); }
+
+    main { padding: 20px 0 42px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px 18px;
+      margin-bottom: 16px;
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.88rem;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: var(--blue-bg);
+      border: 1px solid #cdddf1;
+      color: #153e6b;
+      margin-bottom: 16px;
+    }
+    .status-bar.error {
+      background: var(--red-bg);
+      border-color: #f1c0c0;
+      color: #8f1d1d;
+    }
+    .status-bar.ready {
+      background: var(--green-bg);
+      border-color: #bfe6cf;
+      color: #135d3c;
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 1fr;
+      gap: 14px;
+      align-items: end;
+    }
+    @media (max-width: 860px) {
+      .controls-grid { grid-template-columns: 1fr; }
+    }
+
+    label.field-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    input[type="text"], select {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #c9d3e2;
+      border-radius: 7px;
+      font-size: 0.94rem;
+      color: var(--text);
+      background: #ffffff;
+    }
+    input[type="text"]:focus, select:focus {
+      outline: none;
+      border-color: var(--navy);
+      box-shadow: 0 0 0 3px rgba(8, 61, 119, 0.12);
+    }
+
+    .filter-row {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+    .filter-btn {
+      border: 1px solid #c9d3e2;
+      background: #f8fafc;
+      color: var(--text);
+      padding: 6px 11px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-btn:hover { border-color: var(--navy); color: var(--navy); }
+    .filter-btn.active {
+      background: var(--navy);
+      border-color: var(--navy);
+      color: #ffffff;
+    }
+    .nav-group {
+      margin-left: auto;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .nav-btn {
+      border: 1px solid #c9d3e2;
+      background: #ffffff;
+      color: var(--text);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .nav-btn:hover { background: #f1f5f9; }
+    .count-note { font-size: 0.82rem; color: var(--muted); }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 860px) {
+      .profile-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 520px) {
+      .profile-grid { grid-template-columns: 1fr; }
+    }
+    .kpi {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 13px;
+      background: #fbfcfe;
+    }
+    .kpi .kpi-title {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+    }
+    .kpi .kpi-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-top: 3px;
+    }
+    .kpi .kpi-sub {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-risk { background: var(--red-bg); color: var(--red); border: 1px solid #f0bebe; }
+    .badge-safe { background: var(--green-bg); color: var(--green); border: 1px solid #b5e4ca; }
+    .badge-info { background: var(--blue-bg); color: var(--navy); border: 1px solid #c6dbf2; }
+    .badge-warn { background: #fff5e8; color: #9c5308; border: 1px solid #f3d5ad; }
+
+    .advisory-box {
+      margin-top: 12px;
+      padding: 11px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      border-left: 4px solid var(--navy);
+      background: #f6f9fd;
+    }
+    .advisory-box.branch-b {
+      border-left-color: var(--red);
+      background: #fef6f6;
+    }
+    .advisory-box.branch-a {
+      border-left-color: var(--green);
+      background: #f4fbf7;
+    }
+
+    .history-chips {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+      font-size: 0.82rem;
+    }
+    .enroll-chip {
+      padding: 3px 9px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+    }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .compare-grid { grid-template-columns: 1fr; }
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 0 0 10px;
+      font-size: 1.02rem;
+      font-weight: 700;
+    }
+    .panel-title.uncons { color: var(--steel); }
+    .panel-title.riskaware { color: var(--navy); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    th, td {
+      padding: 8px 9px;
+      text-align: left;
+      border-bottom: 1px solid #edf1f7;
+    }
+    th {
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      background: #f8fafd;
+      font-weight: 600;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr.row-changed { background: #fffcf3; }
+
+    .mod-pill {
+      display: inline-block;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 5px;
+      background: #edf2f8;
+      color: var(--navy);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.84rem;
+    }
+    .fail-bar-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .fail-bar {
+      display: inline-block;
+      width: 44px;
+      height: 7px;
+      background: #eaeef5;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .fail-bar > span {
+      display: block;
+      height: 100%;
+      border-radius: 4px;
+    }
+
+    .module-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .module-stat {
+      flex: 1 1 130px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 7px 10px;
+      font-size: 0.82rem;
+      background: #fbfcfe;
+    }
+    .module-stat strong { color: var(--navy); }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      padding: 8px 16px 26px;
+    }
+    footer code {
+      background: #e9eef6;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>PCRA-HGNN Advisor Dashboard</h1>
+      <p>
+        Pedagogically Constrained, Risk-Aware Heterogeneous Graph Neural Networks for Early Student Profiling
+        and Safe Course Recommendation (OULAD &middot; 2014J Held-Out Evaluation).
+      </p>
+      <div class="header-links">
+        <a href="https://github.com/YENDURIVIVEK/pedagogically-Constrained-Risk-Aware-for-Safe-Course-Recommendation" target="_blank" rel="noopener">
+          GitHub Repository
+        </a>
+        <span class="pill">Safety Multiplier &lambda; = 0.35</span>
+        <span class="pill">Seeds: 42, 52, 62</span>
+        <span class="pill" id="eligible-badge">Loading learners&hellip;</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="status-bar" class="status-bar">
+      <span id="status-text">Loading model outputs (<code>oulad_temporal_ranking_top5_by_user_model.csv</code> and <code>nested_grouped_cv_oof_predictions.csv</code>)&hellip;</span>
+    </div>
+
+    <section class="card">
+      <div class="controls-grid">
+        <div>
+          <label class="field-label" for="student-search">Search Student ID</label>
+          <input id="student-search" type="text" placeholder="Type Student ID (e.g., 100788)..." autocomplete="off" />
+        </div>
+        <div>
+          <label class="field-label" for="student-select">Select Learner (2014J Cohort)</label>
+          <select id="student-select"></select>
+        </div>
+        <div>
+          <label class="field-label" for="baseline-select">Additional Baseline Panel</label>
+          <select id="baseline-select">
+            <option value="BPR-MF">BPR-MF</option>
+            <option value="Random">Random Recommender</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <button class="filter-btn active" data-filter="all">All Eligible Learners</button>
+        <button class="filter-btn" data-filter="vulnerable">Vulnerable (&rho;<sub>u</sub> &ge; 0.50)</button>
+        <button class="filter-btn" data-filter="reranked">Top-1 Reranked by Safety Penalty</button>
+        <button class="filter-btn" data-filter="wellprepared">Well-Prepared (&rho;<sub>u</sub> &lt; 0.50)</button>
+
+        <div class="nav-group">
+          <span class="count-note" id="filtered-count">0 learners</span>
+          <button class="nav-btn" id="prev-btn" type="button">&larr; Prev</button>
+          <button class="nav-btn" id="next-btn" type="button">Next &rarr;</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="profile-grid">
+        <div class="kpi">
+          <div class="kpi-title">Student ID</div>
+          <div class="kpi-value" id="kpi-id">&mdash;</div>
+          <div class="kpi-sub" id="kpi-enrollments">Target: 2014J</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">Day-28 HGNN Risk Signal</div>
+          <div class="kpi-value" id="kpi-day28">&mdash;</div>
+          <div class="kpi-sub" id="kpi-day28-sub">Out-of-fold mean (seeds 42, 52)</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">Historical At-Risk Rate (&rho;<sub>u</sub>)</div>
+          <div class="kpi-value" id="kpi-rho">&mdash;</div>
+          <div class="kpi-sub" id="kpi-rho-sub">From training presentations</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-title">Rank-1 Safety Shift</div>
+          <div class="kpi-value" id="kpi-shift">&mdash;</div>
+          <div class="kpi-sub" id="kpi-shift-sub">Unconstrained &rarr; Risk-Aware</div>
+        </div>
+      </div>
+
+      <div id="advisory-box" class="advisory-box">
+        Select a student to inspect their dual-pathway curriculum guidance status.
+      </div>
+      <div id="history-chips" class="history-chips"></div>
+    </section>
+
+    <section class="compare-grid">
+      <div class="card">
+        <h2 class="panel-title uncons">
+          <span>Unconstrained HGNN (Top-5 Consensus)</span>
+          <span class="badge badge-info" id="badge-uncons">Affinity Only</span>
+        </h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Module</th>
+              <th>Seed Votes</th>
+              <th>Mean Rank</th>
+              <th>Train Fail Rate</th>
+              <th>2014J Match</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-uncons"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2 class="panel-title riskaware">
+          <span>Risk-Aware HGNN (Top-5 Consensus)</span>
+          <span class="badge badge-info" id="badge-riskaware">&lambda; = 0.35</span>
+        </h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Module</th>
+              <th>Seed Votes</th>
+              <th>Mean Rank</th>
+              <th>Train Fail Rate</th>
+              <th>2014J Match</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-riskaware"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="panel-title">
+        <span id="baseline-title">Baseline Comparator: BPR-MF (Top-5 Consensus)</span>
+        <span class="badge badge-warn">Reference Baseline</span>
+      </h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Module</th>
+            <th>Seed Votes</th>
+            <th>Mean Rank</th>
+            <th>Train Fail Rate</th>
+            <th>2014J Match</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-baseline"></tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2 class="panel-title" style="margin-bottom: 4px;">
+        <span>OULAD Training-Period Module Non-Completion Rates (2013B, 2013J, 2014B)</span>
+      </h2>
+      <div class="count-note">
+        Used by the Pedagogically Constrained Risk-Aware Scoring Function:
+        <code>Score = s(u, c) &minus; &lambda; &middot; &rho;<sub>u</sub> &middot; FailureRate(c)</code>.
+      </div>
+      <div class="module-strip" id="module-strip"></div>
+    </section>
+  </main>
+
+  <footer>
+    Static client-side interface for PCRA-HGNN &middot; Reads exported outputs directly from
+    <code>oulad_temporal_ranking_top5_by_user_model.csv</code> and <code>nested_grouped_cv_oof_predictions.csv</code>.
+  </footer>
+
+  <script>
+    (function () {
+      const GH_RAW_BASE =
+        "https://raw.githubusercontent.com/YENDURIVIVEK/pedagogically-Constrained-Risk-Aware-for-Safe-Course-Recommendation/main";
+
+      const MODULE_FAILURE_RATES = {
+        AAA: 27.4,
+        BBB: 53.7,
+        CCC: 65.8,
+        DDD: 59.3,
+        EEE: 44.7,
+        FFF: 53.1,
+        GGG: 40.1,
+      };
+
+      const MODULE_DESC = {
+        AAA: "Low risk",
+        GGG: "Foundation",
+        EEE: "Moderate",
+        FFF: "Moderate-high",
+        BBB: "Moderate-high",
+        DDD: "High risk",
+        CCC: "Highest risk",
+      };
+
+      const state = {
+        top5ByUserModel: new Map(), // key: `${sid}||${model}` -> rows[]
+        oofByUser: new Map(),       // key: sid -> rows[]
+        hgnnOOfCols: [],
+        allUsers: [],
+        userMeta: new Map(),        // sid -> { rho, day28Max, day28Mean, reranked }
+        filteredUsers: [],
+        currentFilter: "all",
+        currentUser: "",
+      };
+
+      const els = {
+        statusBar: document.getElementById("status-bar"),
+        statusText: document.getElementById("status-text"),
+        eligibleBadge: document.getElementById("eligible-badge"),
+        search: document.getElementById("student-search"),
+        select: document.getElementById("student-select"),
+        baselineSelect: document.getElementById("baseline-select"),
+        filteredCount: document.getElementById("filtered-count"),
+        prevBtn: document.getElementById("prev-btn"),
+        nextBtn: document.getElementById("next-btn"),
+        kpiId: document.getElementById("kpi-id"),
+        kpiEnrollments: document.getElementById("kpi-enrollments"),
+        kpiDay28: document.getElementById("kpi-day28"),
+        kpiDay28Sub: document.getElementById("kpi-day28-sub"),
+        kpiRho: document.getElementById("kpi-rho"),
+        kpiRhoSub: document.getElementById("kpi-rho-sub"),
+        kpiShift: document.getElementById("kpi-shift"),
+        kpiShiftSub: document.getElementById("kpi-shift-sub"),
+        advisoryBox: document.getElementById("advisory-box"),
+        historyChips: document.getElementById("history-chips"),
+        tbodyUncons: document.getElementById("tbody-uncons"),
+        tbodyRiskAware: document.getElementById("tbody-riskaware"),
+        tbodyBaseline: document.getElementById("tbody-baseline"),
+        baselineTitle: document.getElementById("baseline-title"),
+        badgeUncons: document.getElementById("badge-uncons"),
+        badgeRiskAware: document.getElementById("badge-riskaware"),
+        moduleStrip: document.getElementById("module-strip"),
+      };
+
+      function renderModuleStrip() {
+        const order = ["AAA", "GGG", "EEE", "FFF", "BBB", "DDD", "CCC"];
+        els.moduleStrip.innerHTML = order
+          .map((m) => {
+            const rate = MODULE_FAILURE_RATES[m];
+            const color = rate >= 58 ? "#c93b3b" : rate >= 48 ? "#d9822b" : "#18794e";
+            return `
+              <div class="module-stat">
+                <strong>${m}</strong>: <span style="color:${color};font-weight:700;">${rate.toFixed(1)}%</span>
+                <div style="color:#5a667a;font-size:0.75rem;">${MODULE_DESC[m]}</div>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      async function fetchWithFallback(filename) {
+        const candidates = [
+          `./${filename}`,
+          `./data/${filename}`,
+          `${GH_RAW_BASE}/${filename}`,
+        ];
+        let lastErr = null;
+        for (const url of candidates) {
+          try {
+            const res = await fetch(url, { cache: "no-cache" });
+            if (res.ok) {
+              return { text: await res.text(), source: url };
+            }
+            lastErr = new Error(`HTTP ${res.status} for ${url}`);
+          } catch (err) {
+            lastErr = err;
+          }
+        }
+        throw lastErr || new Error(`Could not load ${filename}`);
+      }
+
+      function parseCSVRows(text) {
+        const lines = text.split(/\r?\n/);
+        if (!lines.length) return { headers: [], lines: [] };
+        const headers = lines[0].split(",").map((h) => h.trim());
+        return { headers, lines };
+      }
+
+      function computeConsensus(studentId, modelName) {
+        const rows = state.top5ByUserModel.get(`${studentId}||${modelName}`) || [];
+        if (!rows.length) return [];
+        const byModule = new Map();
+        for (const r of rows) {
+          let entry = byModule.get(r.module);
+          if (!entry) {
+            entry = { module: r.module, seeds: new Set(), rankSum: 0, count: 0, relevant: false };
+            byModule.set(r.module, entry);
+          }
+          entry.seeds.add(r.seed);
+          entry.rankSum += r.rank;
+          entry.count += 1;
+          if (r.relevant) entry.relevant = true;
+        }
+        const arr = Array.from(byModule.values()).map((e) => ({
+          module: e.module,
+          seedVotes: e.seeds.size,
+          meanRank: e.rankSum / e.count,
+          relevant: e.relevant,
+          failRate: MODULE_FAILURE_RATES[e.module],
+        }));
+        arr.sort((a, b) => {
+          if (b.seedVotes !== a.seedVotes) return b.seedVotes - a.seedVotes;
+          if (a.meanRank !== b.meanRank) return a.meanRank - b.meanRank;
+          return a.module.localeCompare(b.module);
+        });
+        return arr.slice(0, 5);
+      }
+
+      function buildIndices() {
+        const userSet = new Set();
+        for (const key of state.top5ByUserModel.keys()) {
+          userSet.add(key.split("||")[0]);
+        }
+        state.allUsers = Array.from(userSet).sort((a, b) => Number(a) - Number(b) || a.localeCompare(b));
+
+        for (const sid of state.allUsers) {
+          const oofRows = state.oofByUser.get(sid) || [];
+          const histRows = oofRows.filter((r) => r.pres !== "2014J");
+          let rho = null;
+          if (histRows.length > 0) {
+            const sumRisk = histRows.reduce((acc, r) => acc + r.atRisk, 0);
+            rho = sumRisk / histRows.length;
+          }
+          let day28Max = null;
+          let day28Mean = null;
+          if (oofRows.length > 0 && state.hgnnOOfCols.length > 0) {
+            const rowMeans = oofRows.map((r) => r.hgnnProb).filter((v) => Number.isFinite(v));
+            if (rowMeans.length > 0) {
+              day28Max = Math.max(...rowMeans);
+              day28Mean = rowMeans.reduce((a, b) => a + b, 0) / rowMeans.length;
+            }
+          }
+          const unc = computeConsensus(sid, "HGNN");
+          const ra = computeConsensus(sid, "HGNN (Risk-Aware)");
+          const uncTop1 = unc[0] ? unc[0].module : null;
+          const raTop1 = ra[0] ? ra[0].module : null;
+          const reranked = Boolean(uncTop1 && raTop1 && uncTop1 !== raTop1);
+
+          state.userMeta.set(sid, { rho, day28Max, day28Mean, reranked, uncTop1, raTop1 });
+        }
+      }
+
+      function applyFilter() {
+        const query = els.search.value.trim();
+        const mode = state.currentFilter;
+        state.filteredUsers = state.allUsers.filter((sid) => {
+          if (query && !sid.includes(query)) return false;
+          const meta = state.userMeta.get(sid);
+          if (!meta) return false;
+          if (mode === "vulnerable") return meta.rho !== null && meta.rho >= 0.5;
+          if (mode === "wellprepared") return meta.rho !== null && meta.rho < 0.5;
+          if (mode === "reranked") return meta.reranked;
+          return true;
+        });
+
+        els.filteredCount.textContent = `${state.filteredUsers.length} learner${state.filteredUsers.length === 1 ? "" : "s"}`;
+        const prevChoice = state.currentUser;
+        els.select.innerHTML = state.filteredUsers
+          .map((sid) => {
+            const m = state.userMeta.get(sid);
+            const tag = m && m.reranked ? " [Reranked]" : (m && m.rho !== null && m.rho >= 0.5 ? " [ρ_u ≥ 0.50]" : "");
+            return `<option value="${sid}">${sid}${tag}</option>`;
+          })
+          .join("");
+
+        if (state.filteredUsers.length === 0) {
+          state.currentUser = "";
+          renderStudent("");
+          return;
+        }
+        if (prevChoice && state.filteredUsers.includes(prevChoice)) {
+          state.currentUser = prevChoice;
+        } else {
+          state.currentUser = state.filteredUsers[0];
+        }
+        els.select.value = state.currentUser;
+        renderStudent(state.currentUser);
+      }
+
+      function renderTableRows(tbody, rows, otherTop1Module) {
+        if (!rows.length) {
+          tbody.innerHTML = `<tr><td colspan="6" style="color:#5a667a;">No recommendations available for this selection.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = rows
+          .map((r, idx) => {
+            const fail = r.failRate;
+            const barColor = fail >= 58 ? "#c93b3b" : fail >= 48 ? "#d9822b" : "#18794e";
+            const changed = otherTop1Module && idx === 0 && r.module !== otherTop1Module;
+            const matchBadge = r.relevant
+              ? `<span class="badge badge-safe">Enrolled &check;</span>`
+              : `<span style="color:#8b95a5;">&mdash;</span>`;
+            return `
+              <tr class="${changed ? "row-changed" : ""}">
+                <td><strong>#${idx + 1}</strong></td>
+                <td><span class="mod-pill">${r.module}</span>${changed ? ' <span class="badge badge-warn">Shifted</span>' : ""}</td>
+                <td>${r.seedVotes} / 3</td>
+                <td>${r.meanRank.toFixed(2)}</td>
+                <td>
+                  <span class="fail-bar-wrap">
+                    <span class="fail-bar"><span style="width:${Math.min(100, fail)}%;background:${barColor};"></span></span>
+                    <span>${Number.isFinite(fail) ? fail.toFixed(1) + "%" : "N/A"}</span>
+                  </span>
+                </td>
+                <td>${matchBadge}</td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      function renderStudent(sid) {
+        if (!sid) {
+          els.kpiId.textContent = "—";
+          els.kpiDay28.textContent = "—";
+          els.kpiRho.textContent = "—";
+          els.kpiShift.textContent = "—";
+          els.advisoryBox.className = "advisory-box";
+          els.advisoryBox.textContent = "No learners match the current filter.";
+          els.historyChips.innerHTML = "";
+          els.tbodyUncons.innerHTML = "";
+          els.tbodyRiskAware.innerHTML = "";
+          els.tbodyBaseline.innerHTML = "";
+          return;
+        }
+
+        const meta = state.userMeta.get(sid) || {};
+        const oofRows = state.oofByUser.get(sid) || [];
+        const uncons = computeConsensus(sid, "HGNN");
+        const riskAware = computeConsensus(sid, "HGNN (Risk-Aware)");
+        const baselineModel = els.baselineSelect.value;
+        const baselineRows = computeConsensus(sid, baselineModel);
+
+        els.kpiId.textContent = sid;
+        els.kpiEnrollments.textContent = oofRows.length
+          ? `${oofRows.length} OULAD enrollment${oofRows.length > 1 ? "s" : ""} recorded`
+          : "2014J returning learner";
+
+        if (meta.day28Max !== null && meta.day28Max !== undefined) {
+          const pct = (meta.day28Max * 100).toFixed(1) + "%";
+          els.kpiDay28.innerHTML = `${pct} ${
+            meta.day28Max >= 0.5
+              ? '<span class="badge badge-risk">Flagged</span>'
+              : '<span class="badge badge-safe">Low Risk</span>'
+          }`;
+          els.kpiDay28Sub.textContent = `Mean across enrollments: ${(meta.day28Mean * 100).toFixed(1)}%`;
+        } else {
+          els.kpiDay28.textContent = "N/A";
+          els.kpiDay28Sub.textContent = "OOF predictions file not loaded";
+        }
+
+        if (meta.rho !== null && meta.rho !== undefined) {
+          els.kpiRho.innerHTML = `${meta.rho.toFixed(2)} ${
+            meta.rho >= 0.5
+              ? '<span class="badge badge-risk">Branch B</span>'
+              : '<span class="badge badge-safe">Branch A</span>'
+          }`;
+          els.kpiRhoSub.textContent =
+            meta.rho >= 0.5
+              ? "Safety penalty active (λ = 0.35)"
+              : "Minimal/no safety penalty";
+        } else {
+          els.kpiRho.textContent = "0.50 (default)";
+          els.kpiRhoSub.textContent = "No training-period history found";
+        }
+
+        const unc1 = uncons[0] ? uncons[0].module : "—";
+        const ra1 = riskAware[0] ? riskAware[0].module : "—";
+        if (unc1 !== ra1) {
+          const f1 = MODULE_FAILURE_RATES[unc1];
+          const f2 = MODULE_FAILURE_RATES[ra1];
+          const diff = (f2 - f1).toFixed(1);
+          els.kpiShift.innerHTML = `${unc1} &rarr; ${ra1}`;
+          els.kpiShiftSub.textContent = `Top-1 fail rate: ${f1}% → ${f2}% (${diff} pp)`;
+        } else {
+          els.kpiShift.textContent = `${ra1} (Unchanged)`;
+          els.kpiShiftSub.textContent = "Top-1 recommendation preserved";
+        }
+
+        if (meta.rho !== null && meta.rho >= 0.5) {
+          els.advisoryBox.className = "advisory-box branch-b";
+          els.advisoryBox.innerHTML =
+            `<strong>Branch B — Academically Vulnerable (&rho;<sub>u</sub> = ${meta.rho.toFixed(2)} &ge; 0.50):</strong> ` +
+            `High-failure courses (e.g., CCC 65.8%, DDD 59.3%) are penalized in favor of safer options (e.g., AAA 27.4%, GGG 40.1%). ` +
+            `Recommended 3-tier remediation: (1) diagnostic quizzes, (2) faculty concept walkthroughs, (3) peer mentoring.`;
+        } else {
+          els.advisoryBox.className = "advisory-box branch-a";
+          els.advisoryBox.innerHTML =
+            `<strong>Branch A — Well-Prepared (&rho;<sub>u</sub> = ${meta.rho !== null ? meta.rho.toFixed(2) : "0.00"} &lt; 0.50):</strong> ` +
+            `The safety penalty approaches zero, keeping recommendations aligned with learned BPR affinity for honors/advanced pathways.`;
+        }
+
+        if (oofRows.length) {
+          els.historyChips.innerHTML =
+            `<span style="font-weight:600;color:#5a667a;">Observed OULAD History:</span>` +
+            oofRows
+              .map((r) => {
+                const outcome = r.atRisk === 1 ? "At-Risk (Fail/Withdrawn)" : "Pass/Distinction";
+                const cls = r.atRisk === 1 ? "badge-risk" : "badge-safe";
+                const prob = Number.isFinite(r.hgnnProb) ? ` &middot; Day-28 P=${r.hgnnProb.toFixed(2)}` : "";
+                return `<span class="enroll-chip"><strong>${r.mod}::${r.pres}</strong> <span class="badge ${cls}">${outcome}</span>${prob}</span>`;
+              })
+              .join("");
+        } else {
+          els.historyChips.innerHTML = "";
+        }
+
+        els.badgeUncons.textContent = `Top-1: ${unc1}`;
+        els.badgeRiskAware.textContent = `Top-1: ${ra1} (λ = 0.35)`;
+        els.baselineTitle.textContent = `Baseline Comparator: ${baselineModel} (Top-5 Consensus)`;
+
+        renderTableRows(els.tbodyUncons, uncons, ra1);
+        renderTableRows(els.tbodyRiskAware, riskAware, unc1);
+        renderTableRows(els.tbodyBaseline, baselineRows, null);
+      }
+
+      async function init() {
+        renderModuleStrip();
+        try {
+          const top5Res = await fetchWithFallback("oulad_temporal_ranking_top5_by_user_model.csv");
+          const top5Parsed = parseCSVRows(top5Res.text);
+          const idxSeed = top5Parsed.headers.indexOf("Seed");
+          const idxModel = top5Parsed.headers.indexOf("Model");
+          const idxUser = top5Parsed.headers.indexOf("Student_ID") >= 0
+            ? top5Parsed.headers.indexOf("Student_ID")
+            : top5Parsed.headers.indexOf("User_ID");
+          const idxRank = top5Parsed.headers.indexOf("Rank");
+          const idxMod = top5Parsed.headers.indexOf("Recommended_Module") >= 0
+            ? top5Parsed.headers.indexOf("Recommended_Module")
+            : top5Parsed.headers.indexOf("Item_ID");
+          const idxRel = top5Parsed.headers.indexOf("Relevant");
+
+          for (let i = 1; i < top5Parsed.lines.length; i++) {
+            const line = top5Parsed.lines[i];
+            if (!line) continue;
+            const cols = line.split(",");
+            if (cols.length < top5Parsed.headers.length) continue;
+            const sid = cols[idxUser].trim();
+            const model = cols[idxModel].trim();
+            const key = `${sid}||${model}`;
+            let list = state.top5ByUserModel.get(key);
+            if (!list) {
+              list = [];
+              state.top5ByUserModel.set(key, list);
+            }
+            list.push({
+              seed: Number(cols[idxSeed]),
+              rank: Number(cols[idxRank]),
+              module: cols[idxMod].trim(),
+              relevant: idxRel >= 0 ? Number(cols[idxRel]) === 1 : false,
+            });
+          }
+
+          let oofLoaded = false;
+          try {
+            const oofRes = await fetchWithFallback("nested_grouped_cv_oof_predictions.csv");
+            const oofParsed = parseCSVRows(oofRes.text);
+            const hdrs = oofParsed.headers;
+            const idxStu = hdrs.indexOf("id_student");
+            const idxMod = hdrs.indexOf("code_module");
+            const idxPres = hdrs.indexOf("code_presentation");
+            const idxRisk = hdrs.indexOf("At_Risk");
+            const hgnnIdxs = hdrs
+              .map((h, idx) => (h.startsWith("OOF_HGNN_seed_") ? idx : -1))
+              .filter((idx) => idx >= 0);
+
+            for (let i = 1; i < oofParsed.lines.length; i++) {
+              const line = oofParsed.lines[i];
+              if (!line) continue;
+              const cols = line.split(",");
+              if (cols.length < hdrs.length) continue;
+              const sid = cols[idxStu].trim();
+              let hgnnProb = NaN;
+              if (hgnnIdxs.length > 0) {
+                let s = 0;
+                let c = 0;
+                for (const idx of hgnnIdxs) {
+                  const v = parseFloat(cols[idx]);
+                  if (Number.isFinite(v)) { s += v; c += 1; }
+                }
+                if (c > 0) hgnnProb = s / c;
+              }
+              let list = state.oofByUser.get(sid);
+              if (!list) {
+                list = [];
+                state.oofByUser.set(sid, list);
+              }
+              list.push({
+                mod: cols[idxMod].trim(),
+                pres: cols[idxPres].trim(),
+                atRisk: Number(cols[idxRisk]),
+                hgnnProb,
+              });
+            }
+            state.hgnnOOfCols = hdrs.filter((h) => h.startsWith("OOF_HGNN_seed_"));
+            oofLoaded = true;
+          } catch (oofErr) {
+            console.warn("OOF predictions CSV optional load failed:", oofErr);
+          }
+
+          buildIndices();
+          els.eligibleBadge.textContent = `${state.allUsers.length} Eligible 2014J Learners`;
+          els.statusBar.className = "status-bar ready";
+          els.statusText.innerHTML =
+            `Loaded <strong>${state.allUsers.length}</strong> eligible 2014J learners` +
+            (oofLoaded ? " and Day-28 HGNN risk profiles." : " (OOF risk file optional/not found).");
+
+          applyFilter();
+        } catch (err) {
+          els.statusBar.className = "status-bar error";
+          els.statusText.textContent =
+            `Failed to load oulad_temporal_ranking_top5_by_user_model.csv (${err.message}). ` +
+            `Ensure the CSV is placed alongside index.html or served over HTTP/GitHub Pages.`;
+          els.eligibleBadge.textContent = "Data load failed";
+        }
+      }
+
+      document.querySelectorAll(".filter-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          state.currentFilter = btn.getAttribute("data-filter");
+          applyFilter();
+        });
+      });
+
+      els.search.addEventListener("input", applyFilter);
+      els.select.addEventListener("change", () => {
+        state.currentUser = els.select.value;
+        renderStudent(state.currentUser);
+      });
+      els.baselineSelect.addEventListener("change", () => renderStudent(state.currentUser));
+
+      els.prevBtn.addEventListener("click", () => {
+        if (!state.filteredUsers.length) return;
+        const idx = state.filteredUsers.indexOf(state.currentUser);
+        const nextIdx = idx <= 0 ? state.filteredUsers.length - 1 : idx - 1;
+        state.currentUser = state.filteredUsers[nextIdx];
+        els.select.value = state.currentUser;
+        renderStudent(state.currentUser);
+      });
+
+      els.nextBtn.addEventListener("click", () => {
+        if (!state.filteredUsers.length) return;
+        const idx = state.filteredUsers.indexOf(state.currentUser);
+        const nextIdx = idx >= state.filteredUsers.length - 1 ? 0 : idx + 1;
+        state.currentUser = state.filteredUsers[nextIdx];
+        els.select.value = state.currentUser;
+        renderStudent(state.currentUser);
+      });
+
+      init();
+    })();
+  </script>
+</body>
+</html>
